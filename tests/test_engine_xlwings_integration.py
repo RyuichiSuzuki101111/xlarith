@@ -122,6 +122,21 @@ class TestEngineXlwingsIntegration(unittest.TestCase):
 
         self.assertEqual(result, 24)
 
+    def test_row_and_column_vector_orientations_broadcast_as_expected(self) -> None:
+        row = self.engine.create_ref([1, 2, 3], vector_orientation='row')
+        col = self.engine.create_ref([1, 2, 3], vector_orientation='column')
+
+        result = self.engine.evaluate(row + col)
+
+        self.assertEqual(
+            result,
+            [
+                [2, 3, 4],
+                [3, 4, 5],
+                [4, 5, 6],
+            ],
+        )
+
 
 if __name__ == '__main__':
     unittest.main()

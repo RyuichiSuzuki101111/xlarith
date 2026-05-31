@@ -20,6 +20,22 @@ class TestEngineHelpers(unittest.TestCase):
         self.assertEqual(ref.key, 1)
         self.assertIn(ref, engine._bound_values)
 
+    def test_create_ref_accepts_column_vector_orientation(self) -> None:
+        """1D sequences can be registered explicitly as column vectors."""
+        engine = Engine()
+
+        ref = engine.create_ref([1, 2, 3], vector_orientation='column')
+
+        self.assertEqual(ref.shape, (3, 1))
+        self.assertEqual(engine.bound_value(ref), ((1,), (2,), (3,)))
+
+    def test_create_ref_rejects_invalid_vector_orientation(self) -> None:
+        """Unsupported orientation values should raise a ValueError."""
+        engine = Engine()
+
+        with self.assertRaises(ValueError):
+            engine.create_ref([1, 2, 3], vector_orientation='diagonal')
+
     def test_collect_refs_deduplicates_and_keeps_order(self) -> None:
         """Reference collection should keep first-seen order and remove duplicates."""
         engine = Engine()
