@@ -41,6 +41,22 @@ class TestExcelRepresenter(unittest.TestCase):
         formula_body = representer.represent_root(partial)
         self.assertEqual(formula_body, '(A1+A2)')
 
+    def test_represent_array_constant_escapes_text(self) -> None:
+        representer = ExcelRepresenter({})
+        term = to_term([['a"b', 'x']])
+        self.assertEqual(representer.represent_root(term), '{"a""b","x"}')
+
+    def test_represent_array_constant_keeps_numeric_text_unquoted(self) -> None:
+        representer = ExcelRepresenter({})
+        term = to_term([['1.5', '-2']])
+        self.assertEqual(representer.represent_root(term), '{1.5,-2}')
+
+    def test_represent_ref_raises_when_not_placed(self) -> None:
+        a = Ref(key=1, shape=(1, 1))
+        representer = ExcelRepresenter({})
+        with self.assertRaises(ValueError):
+            representer.represent_root(a)
+
 
 if __name__ == '__main__':
     unittest.main()

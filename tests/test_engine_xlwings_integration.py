@@ -76,6 +76,23 @@ class TestEngineXlwingsIntegration(unittest.TestCase):
         self.assertEqual(round(2.5), 2)
         self.assertEqual(round(-2.5), -2)
 
+    def test_evaluate_matrix_with_scalar_broadcast_via_excel(self) -> None:
+        matrix = self.engine.create_ref([[1, 2], [3, 4]])
+        scalar = self.engine.create_ref(10)
+
+        result = self.engine.evaluate(matrix + scalar)
+
+        self.assertEqual(result, [[11, 12], [13, 14]])
+
+    def test_evaluate_materialized_subexpression_via_excel(self) -> None:
+        a = self.engine.create_ref(3)
+        b = self.engine.create_ref(4)
+        partial = self.engine.materialize(a + b)
+
+        result = self.engine.evaluate(partial * 2)
+
+        self.assertEqual(result, 14)
+
 
 if __name__ == '__main__':
     unittest.main()
