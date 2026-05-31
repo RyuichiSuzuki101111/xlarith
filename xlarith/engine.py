@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Literal
 
 from .compiler import CompiledTerm, Compiler
 from .evaluator import Evaluator, ExcelResult
@@ -56,14 +57,48 @@ class Engine:
         self._compiler = Compiler()
         self._evaluator = Evaluator(app, self._allocator)
 
-    def create_ref(self, value: ExcelValue) -> Ref:
-        """Register a Python scalar/vector/matrix value and return its symbolic ref."""
+    def create_ref(
+        self,
+        value: ExcelValue,
+        *,
+        vector_orientation: Literal['row', 'column'] = 'row',
+    ) -> Ref:
+        """Register a Python value and return a symbolic ref.
+
+        For 1D sequence inputs, ``vector_orientation`` controls whether the
+        sequence is interpreted as a row vector ``(1, n)`` or a column vector
+        ``(n, 1)``.
+        """
+        if vector_orientation not in {'row', 'column'}:
+            msg = (
+                "vector_orientation must be either 'row' or 'column'. "
+                f'Got: {vector_orientation!r}'
+            )
+            raise ValueError(msg)
+
         matrix = normalize_excel_value(value)
+        if self._is_1d_sequence(value) and vector_orientation == 'column':
+            matrix = tuple((item,) for item in matrix[0])
+
         shape = (len(matrix), len(matrix[0]))
         ref = Ref(key=self._next_ref_key, shape=shape)
         self._next_ref_key += 1
         self._bound_values[ref] = matrix
         return ref
+
+    def _is_1d_sequence(self, value: ExcelValue) -> bool:
+        if not isinstance(value, Sequence) or isinstance(
+            value,
+            str | bytes | bytearray,
+        ):
+            return False
+        if len(value) == 0:
+            return False
+        first = value[0]
+        return not (
+            isinstance(first, Sequence)
+            and not isinstance(first, str | bytes | bytearray)
+        )
 
     def materialize(self, term: TermLike) -> Materialized:
         """Mark a sub-expression to be placed in a temporary Excel range."""
