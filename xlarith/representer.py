@@ -21,7 +21,7 @@ def _looks_numeric(text: str) -> bool:
 
 
 def _format_scalar(value: int | float | str) -> str:
-    if isinstance(value, (int, float)):
+    if isinstance(value, int | float):
         return str(value)
 
     if _looks_numeric(value):

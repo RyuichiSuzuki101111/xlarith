@@ -141,7 +141,7 @@ class Engine:
                     return raw[0][0]
                 if raw:
                     return raw[0]
-            return raw if raw is None or isinstance(raw, (int, float, str)) else None
+            return raw if raw is None or isinstance(raw, int | float | str) else None
 
         matrix = self._coerce_matrix(raw, shape)
         if rows == 1:
@@ -157,7 +157,7 @@ class Engine:
     ) -> list[list[ExcelResultScalar]]:
         rows, cols = shape
 
-        if isinstance(raw, Sequence) and not isinstance(raw, (str, bytes, bytearray)):
+        if isinstance(raw, Sequence) and not isinstance(raw, str | bytes | bytearray):
             if rows == 1 and cols > 1:
                 if raw and isinstance(raw[0], list):
                     return [list(raw[0])]
@@ -172,7 +172,7 @@ class Engine:
                 return [list(item) for item in raw]
 
         # xlwings can return a scalar in edge cases even for ranges.
-        scalar = raw if raw is None or isinstance(raw, (int, float, str)) else None
+        scalar = raw if raw is None or isinstance(raw, int | float | str) else None
         return [[scalar for _ in range(cols)] for _ in range(rows)]
 
 
