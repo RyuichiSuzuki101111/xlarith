@@ -15,18 +15,18 @@ MatrixValue: TypeAlias = tuple[tuple[ExcelScalar, ...], ...]
 
 
 class Representer(Protocol):
-    def represent_root(self, term: 'TermBase') -> str: ...
+    def represent_root(self, term: TermBase) -> str: ...
 
-    def represent(self, term: 'TermBase') -> str: ...
+    def represent(self, term: TermBase) -> str: ...
 
 
 def _is_scalar(value: object) -> TypeGuard[ExcelScalar]:
-    return isinstance(value, (int, float, str))
+    return isinstance(value, int | float | str)
 
 
 def _is_sequence(value: object) -> TypeGuard[Sequence[object]]:
     return isinstance(value, Sequence) and not isinstance(
-        value, (str, bytes, bytearray)
+        value, str | bytes | bytearray
     )
 
 
@@ -138,37 +138,37 @@ class OperatorTag(Enum):
 
 
 class TermBase:
-    def __add__(self, other: TermLike) -> 'BinaryOp':
+    def __add__(self, other: TermLike) -> BinaryOp:
         return BinaryOp(OperatorTag.ADD, self, to_term(other))
 
-    def __radd__(self, other: TermLike) -> 'BinaryOp':
+    def __radd__(self, other: TermLike) -> BinaryOp:
         return BinaryOp(OperatorTag.ADD, to_term(other), self)
 
-    def __sub__(self, other: TermLike) -> 'BinaryOp':
+    def __sub__(self, other: TermLike) -> BinaryOp:
         return BinaryOp(OperatorTag.SUB, self, to_term(other))
 
-    def __rsub__(self, other: TermLike) -> 'BinaryOp':
+    def __rsub__(self, other: TermLike) -> BinaryOp:
         return BinaryOp(OperatorTag.SUB, to_term(other), self)
 
-    def __mul__(self, other: TermLike) -> 'BinaryOp':
+    def __mul__(self, other: TermLike) -> BinaryOp:
         return BinaryOp(OperatorTag.MUL, self, to_term(other))
 
-    def __rmul__(self, other: TermLike) -> 'BinaryOp':
+    def __rmul__(self, other: TermLike) -> BinaryOp:
         return BinaryOp(OperatorTag.MUL, to_term(other), self)
 
-    def __truediv__(self, other: TermLike) -> 'BinaryOp':
+    def __truediv__(self, other: TermLike) -> BinaryOp:
         return BinaryOp(OperatorTag.DIV, self, to_term(other))
 
-    def __rtruediv__(self, other: TermLike) -> 'BinaryOp':
+    def __rtruediv__(self, other: TermLike) -> BinaryOp:
         return BinaryOp(OperatorTag.DIV, to_term(other), self)
 
-    def __pow__(self, other: TermLike) -> 'BinaryOp':
+    def __pow__(self, other: TermLike) -> BinaryOp:
         return BinaryOp(OperatorTag.POW, self, to_term(other))
 
-    def __rpow__(self, other: TermLike) -> 'BinaryOp':
+    def __rpow__(self, other: TermLike) -> BinaryOp:
         return BinaryOp(OperatorTag.POW, to_term(other), self)
 
-    def __neg__(self) -> 'UnaryOp':
+    def __neg__(self) -> UnaryOp:
         return UnaryOp(OperatorTag.NEG, self)
 
     def to_formula(self, representer: Representer) -> str:

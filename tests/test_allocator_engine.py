@@ -1,6 +1,6 @@
 import unittest
 
-from xlarith.allocator import Engine
+from xlarith.engine import Engine
 from xlarith.term import Ref
 
 
@@ -34,6 +34,22 @@ class TestEngineHelpers(unittest.TestCase):
         self.assertEqual(Engine._normalize_result(engine, [1, 2], (2, 1)), [1, 2])
         self.assertEqual(
             Engine._normalize_result(engine, [[1, 2], [3, 4]], (2, 2)),
+            [[1, 2], [3, 4]],
+        )
+
+    def test_normalize_result_handles_tuple_sequences(self) -> None:
+        engine = Engine.__new__(Engine)
+
+        self.assertEqual(
+            Engine._normalize_result(engine, ((1, 2, 3),), (1, 3)),
+            [1, 2, 3],
+        )
+        self.assertEqual(
+            Engine._normalize_result(engine, ((1,), (2,)), (2, 1)),
+            [1, 2],
+        )
+        self.assertEqual(
+            Engine._normalize_result(engine, ((1, 2), (3, 4)), (2, 2)),
             [[1, 2], [3, 4]],
         )
 
