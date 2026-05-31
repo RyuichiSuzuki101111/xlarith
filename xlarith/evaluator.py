@@ -1,3 +1,5 @@
+"""Excel execution layer that writes refs, runs formulas, and normalizes outputs."""
+
 from __future__ import annotations
 
 from collections.abc import Sequence
@@ -21,22 +23,28 @@ ExcelResult: TypeAlias = (
 
 
 class Evaluator:
+    """Execute compiled terms against an xlwings App instance."""
+
     def __init__(
         self,
         app: xw.App | None,
         allocator: Allocator,
     ) -> None:
+        """Initialize with an optional Excel app and a placement allocator."""
         self.app = app
         self._allocator = allocator
 
     def set_allocator(self, allocator: Allocator) -> None:
+        """Replace the placement allocator used for subsequent executions."""
         self._allocator = allocator
 
     def evaluate(self, engine: Engine, term: object) -> ExcelResult:
+        """Compile a term through the engine and execute the compiled plan."""
         compiled = engine.compile(term)
         return self.execute(engine, compiled)
 
     def execute(self, engine: Engine, compiled: CompiledTerm) -> ExcelResult:
+        """Execute a precompiled term by writing formulas into Excel cells."""
         if self.app is None:
             msg = 'Excel app is not configured for evaluation.'
             raise RuntimeError(msg)
@@ -104,6 +112,7 @@ class Evaluator:
         )
 
     def _normalize_result(self, raw: object, shape: Shape) -> ExcelResult:
+        """Normalize xlwings return values into scalar/vector/matrix output shapes."""
         rows, cols = shape
         if rows == 1 and cols == 1:
             if isinstance(raw, list):

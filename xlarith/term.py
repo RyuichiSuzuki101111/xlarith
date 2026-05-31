@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+"""Term model and normalization utilities for symbolic Excel expressions."""
+
 from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import Enum, auto
@@ -15,6 +17,8 @@ MatrixValue: TypeAlias = tuple[tuple[ExcelScalar, ...], ...]
 
 
 class Representer(Protocol):
+    """Protocol for converting terms into Excel formula expressions."""
+
     def represent_root(self, term: TermBase) -> str: ...
 
     def represent(self, term: TermBase) -> str: ...
@@ -32,6 +36,7 @@ def _is_sequence(value: object) -> TypeGuard[Sequence[object]]:
 
 
 def normalize_excel_value(value: ExcelValue) -> MatrixValue:
+    """Normalize scalar/vector/matrix input into an internal 2D tuple matrix."""
     if _is_scalar(value):
         return ((value,),)
 
@@ -76,10 +81,12 @@ def normalize_excel_value(value: ExcelValue) -> MatrixValue:
 
 
 def shape_of_matrix(matrix: MatrixValue) -> Shape:
+    """Return (rows, cols) for a normalized matrix value."""
     return (len(matrix), len(matrix[0]))
 
 
 def broadcast_shape(left: Shape, right: Shape) -> Shape:
+    """Compute a broadcast-compatible output shape for binary operations."""
     l_rows, l_cols = left
     r_rows, r_cols = right
 
@@ -146,6 +153,8 @@ class OperatorTag(Enum):
 
 
 class TermBase:
+    """Base class for symbolic term nodes supporting Python operators."""
+
     def __add__(self, other: TermLike) -> BinaryOp:
         return BinaryOp(OperatorTag.ADD, self, to_term(other))
 
@@ -180,6 +189,7 @@ class TermBase:
         return UnaryOp(OperatorTag.NEG, self)
 
     def to_formula(self, representer: Representer) -> str:
+        """Render this term as a root Excel formula body via a representer."""
         return representer.represent_root(self)
 
 
@@ -227,6 +237,7 @@ def is_term_like(value: object) -> TypeGuard[TermLike]:
 
 
 def to_term(value: TermLike) -> TermBase:
+    """Convert a Python value or term-like object into a concrete term node."""
     if isinstance(value, TermBase):
         return value
     if _is_scalar(value):
@@ -236,6 +247,7 @@ def to_term(value: TermLike) -> TermBase:
 
 
 def term_shape(term: TermBase) -> Shape:
+    """Infer the output shape of a term, including broadcasted binary ops."""
     if isinstance(term, Constant):
         return (1, 1)
     if isinstance(term, ArrayConstant):

@@ -1,3 +1,5 @@
+"""Compilation helpers for turning terms into executable evaluation plans."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -11,6 +13,8 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True, slots=True)
 class CompiledTerm:
+    """Compiled execution plan produced from a root term."""
+
     root: TermBase
     refs: tuple[Ref, ...]
     materialized: tuple[Materialized, ...]
@@ -18,7 +22,10 @@ class CompiledTerm:
 
 
 class Compiler:
+    """Collect refs and materialized nodes required for evaluator execution."""
+
     def compile(self, engine: Engine, term: TermLike) -> CompiledTerm:
+        """Compile a term and validate that all references belong to the engine."""
         root = to_term(term)
         refs = self.collect_refs(root)
         materialized = self.collect_materialized(root)
@@ -38,6 +45,7 @@ class Compiler:
         )
 
     def collect_refs(self, term: TermBase) -> list[Ref]:
+        """Collect unique Ref nodes in traversal order."""
         ordered_refs: list[Ref] = []
         seen: set[Ref] = set()
 
@@ -67,6 +75,7 @@ class Compiler:
         return ordered_refs
 
     def collect_materialized(self, term: TermBase) -> list[Materialized]:
+        """Collect unique Materialized nodes in dependency-safe order."""
         ordered_terms: list[Materialized] = []
         seen: set[Materialized] = set()
 
