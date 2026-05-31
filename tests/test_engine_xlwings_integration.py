@@ -45,21 +45,24 @@ class TestEngineXlwingsIntegration(unittest.TestCase):
 
     def setUp(self) -> None:
         self.app.books.active.sheets.active.cells.clear_contents()
+        self.engine = Engine(
+            self.app,
+            start_row=1,
+            start_col=1,
+            max_width=50,
+            gap=1,
+        )
 
     def test_evaluate_vector_expression_via_excel(self) -> None:
-        engine = Engine(self.app, start_row=1, start_col=1, max_width=50, gap=1)
-
-        vector = engine.create_ref([1, 2, 3])
-        result = engine.evaluate(vector + 1)
+        vector = self.engine.create_ref([1, 2, 3])
+        result = self.engine.evaluate(vector + 1)
 
         self.assertEqual(result, [2, 3, 4])
 
     def test_evaluate_matrix_expression_via_excel(self) -> None:
-        engine = Engine(self.app, start_row=1, start_col=1, max_width=50, gap=1)
-
-        left = engine.create_ref([[1, 2], [3, 4]])
-        right = engine.create_ref([[10, 20], [30, 40]])
-        result = engine.evaluate(left + right)
+        left = self.engine.create_ref([[1, 2], [3, 4]])
+        right = self.engine.create_ref([[10, 20], [30, 40]])
+        result = self.engine.evaluate(left + right)
 
         self.assertEqual(result, [[11, 22], [33, 44]])
 

@@ -14,7 +14,7 @@ class Arena:
         self,
         start_row: int = 1,
         start_col: int = 1,
-        max_width: int = 100,
+        max_width: int = 256,
         gap: int = 1,
     ) -> None:
         self._row = start_row
