@@ -100,4 +100,4 @@ class Engine:
         return self._compiler.collect_materialized(term)
 
 
-__all__ = ['CompiledTerm', 'Engine']
+__all__ = ('CompiledTerm', 'Engine')

@@ -5,7 +5,17 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from .term import Materialized, Ref, Shape, TermBase, TermLike, term_shape, to_term
+from .term import (
+    BinaryOp,
+    Materialized,
+    Ref,
+    Shape,
+    TermBase,
+    TermLike,
+    UnaryOp,
+    term_shape,
+    to_term,
+)
 
 if TYPE_CHECKING:
     from .engine import Engine
@@ -50,8 +60,6 @@ class Compiler:
         seen: set[Ref] = set()
 
         def visit(node: TermBase) -> None:
-            from .term import BinaryOp, UnaryOp
-
             if isinstance(node, Ref):
                 if node not in seen:
                     seen.add(node)
@@ -80,8 +88,6 @@ class Compiler:
         seen: set[Materialized] = set()
 
         def visit(node: TermBase) -> None:
-            from .term import BinaryOp, UnaryOp
-
             if isinstance(node, Materialized):
                 visit(node.term)
                 if node not in seen:
@@ -102,4 +108,4 @@ class Compiler:
         return ordered_terms
 
 
-__all__ = ['CompiledTerm', 'Compiler']
+__all__ = ('CompiledTerm', 'Compiler')

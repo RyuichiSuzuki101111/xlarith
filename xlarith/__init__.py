@@ -5,8 +5,8 @@ from .term import WorksheetFunctions
 
 wf = WorksheetFunctions
 
-__all__ = [
+__all__ = (
     'Engine',
     'WorksheetFunctions',
     'wf',
-]
+)

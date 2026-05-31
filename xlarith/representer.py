@@ -104,4 +104,4 @@ class ExcelRepresenter:
         return names[tag]
 
 
-__all__ = ['ExcelRepresenter']
+__all__ = ('ExcelRepresenter',)

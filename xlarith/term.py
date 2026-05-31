@@ -1,6 +1,6 @@
-from __future__ import annotations
-
 """Term model and normalization utilities for symbolic Excel expressions."""
+
+from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -302,7 +302,7 @@ class WorksheetFunctions:
 wf = WorksheetFunctions
 
 
-__all__ = [
+__all__ = (
     'ArrayConstant',
     'BinaryOp',
     'Constant',
@@ -327,4 +327,4 @@ __all__ = [
     'term_shape',
     'to_term',
     'wf',
-]
+)

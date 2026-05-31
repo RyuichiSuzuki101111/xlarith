@@ -85,4 +85,4 @@ class ArenaAllocator:
         pass
 
 
-__all__ = ['EXCEL_MAX_COLUMNS', 'Allocator', 'ArenaAllocator', 'Rect']
+__all__ = ('EXCEL_MAX_COLUMNS', 'Allocator', 'ArenaAllocator', 'Rect')

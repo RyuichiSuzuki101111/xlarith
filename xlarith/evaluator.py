@@ -77,7 +77,6 @@ class Evaluator:
 
         representer = ExcelRepresenter(addresses)
         formula = '=' + representer.represent_root(compiled.root)
-        print(f'Writing formula to Excel: {formula}')
         if out_shape == (1, 1):
             self.app.range((out_rect.row, out_rect.col)).formula = formula
         else:
@@ -86,7 +85,6 @@ class Evaluator:
         self.app.calculate()
 
         raw = out_range.value
-        print(f'Raw result from Excel: {raw}')
         return self._normalize_result(raw, out_shape)
 
     def _write_matrix(self, rect: Rect, matrix: MatrixValue) -> None:
@@ -203,4 +201,4 @@ class Evaluator:
         return value if value is None or isinstance(value, int | float | str) else None
 
 
-__all__ = ['Evaluator', 'ExcelResult', 'ExcelResultScalar']
+__all__ = ('Evaluator', 'ExcelResult', 'ExcelResultScalar')
