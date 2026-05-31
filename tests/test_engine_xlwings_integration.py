@@ -2,6 +2,7 @@ import unittest
 
 import xlwings as xw
 
+from xlarith.allocator import ArenaAllocator
 from xlarith.engine import Engine
 
 
@@ -45,12 +46,10 @@ class TestEngineXlwingsIntegration(unittest.TestCase):
 
     def setUp(self) -> None:
         self.app.books.active.sheets.active.cells.clear_contents()
+        allocator = ArenaAllocator(start_row=1, start_col=1, max_width=50, gap=1)
         self.engine = Engine(
             self.app,
-            start_row=1,
-            start_col=1,
-            max_width=50,
-            gap=1,
+            allocator=allocator,
         )
 
     def test_evaluate_vector_expression_via_excel(self) -> None:

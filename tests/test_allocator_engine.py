@@ -37,6 +37,18 @@ class TestEngineHelpers(unittest.TestCase):
         with self.assertRaises(ValueError):
             engine.compile(foreign + 1)
 
+    def test_compile_collects_materialized_terms(self) -> None:
+        engine = Engine()
+        a = engine.create_ref(1)
+        b = engine.create_ref(2)
+        partial = engine.materialize(a + b)
+
+        compiled = engine.compile(partial + 3)
+
+        self.assertEqual(compiled.refs, (a, b))
+        self.assertEqual(compiled.materialized, (partial,))
+        self.assertEqual(compiled.output_shape, (1, 1))
+
     def test_evaluate_requires_allocator_configuration(self) -> None:
         engine = Engine()
         x = engine.create_ref(1)

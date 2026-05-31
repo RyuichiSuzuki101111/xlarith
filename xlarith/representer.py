@@ -4,6 +4,7 @@ from .term import (
     ArrayConstant,
     BinaryOp,
     Constant,
+    Materialized,
     Notation,
     OperatorTag,
     Ref,
@@ -32,7 +33,7 @@ def _format_scalar(value: int | float | str) -> str:
 
 
 class ExcelRepresenter:
-    def __init__(self, ref_addresses: dict[Ref, str]) -> None:
+    def __init__(self, ref_addresses: dict[Ref | Materialized, str]) -> None:
         self._ref_addresses = ref_addresses
 
     def represent_root(self, term: TermBase) -> str:
@@ -45,9 +46,9 @@ class ExcelRepresenter:
         if isinstance(term, ArrayConstant):
             return self._array_constant(term)
 
-        if isinstance(term, Ref):
+        if isinstance(term, Ref | Materialized):
             if term not in self._ref_addresses:
-                raise ValueError(f'Reference key={term.key} was not placed in arena.')
+                raise ValueError(f'Term {term} was not placed in allocator.')
             return self._ref_addresses[term]
 
         if isinstance(term, UnaryOp):

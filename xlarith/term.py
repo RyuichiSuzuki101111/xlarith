@@ -192,6 +192,12 @@ class Ref(TermBase):
 
 
 @dataclass(frozen=True, slots=True)
+class Materialized(TermBase):
+    term: TermBase
+    shape: Shape
+
+
+@dataclass(frozen=True, slots=True)
 class BinaryOp(TermBase):
     tag: OperatorTag
     left: TermBase
@@ -229,6 +235,8 @@ def term_shape(term: TermBase) -> Shape:
     if isinstance(term, ArrayConstant):
         return shape_of_matrix(term.matrix)
     if isinstance(term, Ref):
+        return term.shape
+    if isinstance(term, Materialized):
         return term.shape
     if isinstance(term, UnaryOp):
         if term.tag in {OperatorTag.SUM, OperatorTag.PRODUCT}:
@@ -276,6 +284,7 @@ __all__ = [
     'ExcelScalar',
     'ExcelValue',
     'MatrixValue',
+    'Materialized',
     'Notation',
     'OperatorTag',
     'Ref',

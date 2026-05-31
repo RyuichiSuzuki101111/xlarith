@@ -7,7 +7,7 @@ import xlwings as xw
 
 from .allocator import Allocator, Rect
 from .representer import ExcelRepresenter
-from .term import ExcelScalar, MatrixValue, Ref, Shape
+from .term import ExcelScalar, Materialized, MatrixValue, Ref, Shape
 
 if TYPE_CHECKING:
     from .engine import CompiledTerm, Engine
@@ -22,7 +22,7 @@ ExcelResult: TypeAlias = (
 class Evaluator:
     def __init__(
         self,
-        app: xw.App,
+        app: xw.App | None,
         allocator: Allocator,
     ) -> None:
         self.app = app
@@ -36,12 +36,29 @@ class Evaluator:
         return self.execute(engine, compiled)
 
     def execute(self, engine: Engine, compiled: CompiledTerm) -> ExcelResult:
-        addresses: dict[Ref, str] = {}
+        if self.app is None:
+            raise RuntimeError('Excel app is not configured for evaluation.')
+
+        addresses: dict[Ref | Materialized, str] = {}
         for ref in compiled.refs:
             matrix = engine.bound_value(ref)
             rect = self._allocator.alloc(ref.shape[0], ref.shape[1])
             self._write_matrix(rect, matrix)
             addresses[ref] = self._rect_address(rect)
+
+        representer = ExcelRepresenter(addresses)
+        for materialized in compiled.materialized:
+            mat_shape = materialized.shape
+            mat_rect = self._allocator.alloc(mat_shape[0], mat_shape[1])
+            mat_range = self._rect_range(mat_rect)
+            mat_range.clear_contents()
+
+            formula = '=' + representer.represent(materialized.term)
+            if mat_shape == (1, 1):
+                self.app.range((mat_rect.row, mat_rect.col)).formula = formula
+            else:
+                mat_range.formula_array = formula
+            addresses[materialized] = self._rect_address(mat_rect)
 
         out_shape = compiled.output_shape
         out_rect = self._allocator.alloc(out_shape[0], out_shape[1])

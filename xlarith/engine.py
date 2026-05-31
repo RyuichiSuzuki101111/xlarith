@@ -9,6 +9,7 @@ from .allocator import ArenaAllocator
 from .evaluator import Evaluator, ExcelResult
 from .term import (
     ExcelValue,
+    Materialized,
     MatrixValue,
     Ref,
     Shape,
@@ -27,6 +28,7 @@ if TYPE_CHECKING:
 class CompiledTerm:
     root: TermBase
     refs: tuple[Ref, ...]
+    materialized: tuple[Materialized, ...]
     output_shape: Shape
 
 
@@ -49,9 +51,14 @@ class Engine:
         self._bound_values[ref] = matrix
         return ref
 
+    def materialize(self, term: TermLike) -> Materialized:
+        base = to_term(term)
+        return Materialized(term=base, shape=term_shape(base))
+
     def compile(self, term: TermLike) -> CompiledTerm:
         root = to_term(term)
         refs = self._collect_refs(root)
+        materialized = self._collect_materialized(root)
         for ref in refs:
             if ref not in self._bound_values:
                 raise ValueError(
@@ -59,7 +66,12 @@ class Engine:
                 )
 
         out_shape = term_shape(root)
-        return CompiledTerm(root=root, refs=tuple(refs), output_shape=out_shape)
+        return CompiledTerm(
+            root=root,
+            refs=tuple(refs),
+            materialized=tuple(materialized),
+            output_shape=out_shape,
+        )
 
     def evaluate(self, term: TermLike) -> ExcelResult:
         if self._evaluator is None:
@@ -91,6 +103,10 @@ class Engine:
                     ordered_refs.append(node)
                 return
 
+            if isinstance(node, Materialized):
+                visit(node.term)
+                return
+
             if isinstance(node, UnaryOp):
                 visit(node.term)
                 return
@@ -102,6 +118,32 @@ class Engine:
 
         visit(term)
         return ordered_refs
+
+    def _collect_materialized(self, term: TermBase) -> list[Materialized]:
+        ordered_terms: list[Materialized] = []
+        seen: set[Materialized] = set()
+
+        def visit(node: TermBase) -> None:
+            from .term import BinaryOp, UnaryOp
+
+            if isinstance(node, Materialized):
+                visit(node.term)
+                if node not in seen:
+                    seen.add(node)
+                    ordered_terms.append(node)
+                return
+
+            if isinstance(node, UnaryOp):
+                visit(node.term)
+                return
+
+            if isinstance(node, BinaryOp):
+                visit(node.left)
+                visit(node.right)
+                return
+
+        visit(term)
+        return ordered_terms
 
 
 __all__ = ['CompiledTerm', 'Engine']
