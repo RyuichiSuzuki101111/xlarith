@@ -18,7 +18,7 @@ from .term import (
 )
 
 if TYPE_CHECKING:
-    from .allocator import Evaluator, ExcelResult
+    from .evaluator import Allocator, Evaluator, ExcelResult
 
 
 @dataclass(frozen=True, slots=True)
@@ -58,14 +58,18 @@ class Engine:
         max_width: int = 256,
         gap: int = 1,
     ) -> None:
-        from .allocator import DefaultEvaluator
+        from .evaluator import ArenaAllocator, Evaluator
 
-        self._evaluator = DefaultEvaluator(
-            app,
+        allocator = ArenaAllocator(
             start_row=start_row,
             start_col=start_col,
             max_width=max_width,
             gap=gap,
+        )
+
+        self._evaluator = Evaluator(
+            app,
+            allocator=allocator,
         )
 
     def configure_allocator(
@@ -87,8 +91,15 @@ class Engine:
     def attach_evaluator(self, evaluator: Evaluator) -> None:
         self._evaluator = evaluator
 
-    def attach_allocator(self, allocator: Evaluator) -> None:
-        self.attach_evaluator(allocator)
+    def attach_allocator(self, allocator: Allocator) -> None:
+        if self._evaluator is None:
+            raise RuntimeError(
+                'Evaluator is not configured. Configure an evaluator before '
+                'replacing its allocator.'
+            )
+        if not hasattr(self._evaluator, 'set_allocator'):
+            raise TypeError('Current evaluator does not support allocator replacement.')
+        self._evaluator.set_allocator(allocator)
 
     def create_ref(self, value: ExcelValue) -> Ref:
         matrix = normalize_excel_value(value)

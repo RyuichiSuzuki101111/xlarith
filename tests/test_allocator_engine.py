@@ -1,7 +1,7 @@
 import unittest
 
-from xlarith.allocator import DefaultEvaluator
 from xlarith.engine import Engine
+from xlarith.evaluator import Evaluator
 from xlarith.term import Ref
 
 
@@ -47,35 +47,35 @@ class TestEngineHelpers(unittest.TestCase):
 
 class TestEvaluatorHelpers(unittest.TestCase):
     def test_normalize_result_shapes(self) -> None:
-        evaluator = DefaultEvaluator.__new__(DefaultEvaluator)
+        evaluator = Evaluator.__new__(Evaluator)
 
-        self.assertEqual(DefaultEvaluator._normalize_result(evaluator, 10, (1, 1)), 10)
+        self.assertEqual(Evaluator._normalize_result(evaluator, 10, (1, 1)), 10)
         self.assertEqual(
-            DefaultEvaluator._normalize_result(evaluator, [1, 2, 3], (1, 3)),
+            Evaluator._normalize_result(evaluator, [1, 2, 3], (1, 3)),
             [1, 2, 3],
         )
         self.assertEqual(
-            DefaultEvaluator._normalize_result(evaluator, [1, 2], (2, 1)),
+            Evaluator._normalize_result(evaluator, [1, 2], (2, 1)),
             [1, 2],
         )
         self.assertEqual(
-            DefaultEvaluator._normalize_result(evaluator, [[1, 2], [3, 4]], (2, 2)),
+            Evaluator._normalize_result(evaluator, [[1, 2], [3, 4]], (2, 2)),
             [[1, 2], [3, 4]],
         )
 
     def test_normalize_result_handles_tuple_sequences(self) -> None:
-        evaluator = DefaultEvaluator.__new__(DefaultEvaluator)
+        evaluator = Evaluator.__new__(Evaluator)
 
         self.assertEqual(
-            DefaultEvaluator._normalize_result(evaluator, ((1, 2, 3),), (1, 3)),
+            Evaluator._normalize_result(evaluator, ((1, 2, 3),), (1, 3)),
             [1, 2, 3],
         )
         self.assertEqual(
-            DefaultEvaluator._normalize_result(evaluator, ((1,), (2,)), (2, 1)),
+            Evaluator._normalize_result(evaluator, ((1,), (2,)), (2, 1)),
             [1, 2],
         )
         self.assertEqual(
-            DefaultEvaluator._normalize_result(evaluator, ((1, 2), (3, 4)), (2, 2)),
+            Evaluator._normalize_result(evaluator, ((1, 2), (3, 4)), (2, 2)),
             [[1, 2], [3, 4]],
         )
 
