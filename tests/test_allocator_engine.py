@@ -1,6 +1,6 @@
 import unittest
 
-from xlarith.allocator import DefaultAllocator
+from xlarith.allocator import DefaultEvaluator
 from xlarith.engine import Engine
 from xlarith.term import Ref
 
@@ -45,37 +45,37 @@ class TestEngineHelpers(unittest.TestCase):
             engine.evaluate(x + 1)
 
 
-class TestAllocatorHelpers(unittest.TestCase):
+class TestEvaluatorHelpers(unittest.TestCase):
     def test_normalize_result_shapes(self) -> None:
-        allocator = DefaultAllocator.__new__(DefaultAllocator)
+        evaluator = DefaultEvaluator.__new__(DefaultEvaluator)
 
-        self.assertEqual(DefaultAllocator._normalize_result(allocator, 10, (1, 1)), 10)
+        self.assertEqual(DefaultEvaluator._normalize_result(evaluator, 10, (1, 1)), 10)
         self.assertEqual(
-            DefaultAllocator._normalize_result(allocator, [1, 2, 3], (1, 3)),
+            DefaultEvaluator._normalize_result(evaluator, [1, 2, 3], (1, 3)),
             [1, 2, 3],
         )
         self.assertEqual(
-            DefaultAllocator._normalize_result(allocator, [1, 2], (2, 1)),
+            DefaultEvaluator._normalize_result(evaluator, [1, 2], (2, 1)),
             [1, 2],
         )
         self.assertEqual(
-            DefaultAllocator._normalize_result(allocator, [[1, 2], [3, 4]], (2, 2)),
+            DefaultEvaluator._normalize_result(evaluator, [[1, 2], [3, 4]], (2, 2)),
             [[1, 2], [3, 4]],
         )
 
     def test_normalize_result_handles_tuple_sequences(self) -> None:
-        allocator = DefaultAllocator.__new__(DefaultAllocator)
+        evaluator = DefaultEvaluator.__new__(DefaultEvaluator)
 
         self.assertEqual(
-            DefaultAllocator._normalize_result(allocator, ((1, 2, 3),), (1, 3)),
+            DefaultEvaluator._normalize_result(evaluator, ((1, 2, 3),), (1, 3)),
             [1, 2, 3],
         )
         self.assertEqual(
-            DefaultAllocator._normalize_result(allocator, ((1,), (2,)), (2, 1)),
+            DefaultEvaluator._normalize_result(evaluator, ((1,), (2,)), (2, 1)),
             [1, 2],
         )
         self.assertEqual(
-            DefaultAllocator._normalize_result(allocator, ((1, 2), (3, 4)), (2, 2)),
+            DefaultEvaluator._normalize_result(evaluator, ((1, 2), (3, 4)), (2, 2)),
             [[1, 2], [3, 4]],
         )
 

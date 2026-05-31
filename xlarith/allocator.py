@@ -5,7 +5,8 @@ from typing import TYPE_CHECKING, Protocol, TypeAlias
 
 import xlwings as xw
 
-from .arena import Arena, Rect
+from .arena import Allocator as PlacementAllocator
+from .arena import Rect
 from .representer import ExcelRepresenter
 from .term import ExcelScalar, MatrixValue, Ref, Shape
 
@@ -19,11 +20,11 @@ ExcelResult: TypeAlias = (
 )
 
 
-class Allocator(Protocol):
+class Evaluator(Protocol):
     def execute(self, engine: Engine, compiled: CompiledTerm) -> ExcelResult: ...
 
 
-class DefaultAllocator:
+class DefaultEvaluator:
     def __init__(
         self,
         app: xw.App,
@@ -43,7 +44,7 @@ class DefaultAllocator:
         return self.execute(engine, compiled)
 
     def execute(self, engine: Engine, compiled: CompiledTerm) -> ExcelResult:
-        arena = Arena(
+        allocator = PlacementAllocator(
             start_row=self._start_row,
             start_col=self._start_col,
             max_width=self._max_width,
@@ -53,12 +54,12 @@ class DefaultAllocator:
         addresses: dict[Ref, str] = {}
         for ref in compiled.refs:
             matrix = engine.bound_value(ref)
-            rect = arena.alloc(ref.shape[0], ref.shape[1])
+            rect = allocator.alloc(ref.shape[0], ref.shape[1])
             self._write_matrix(rect, matrix)
             addresses[ref] = self._rect_address(rect)
 
         out_shape = compiled.output_shape
-        out_rect = arena.alloc(out_shape[0], out_shape[1])
+        out_rect = allocator.alloc(out_shape[0], out_shape[1])
         out_range = self._rect_range(out_rect)
         out_range.clear_contents()
 
@@ -187,4 +188,16 @@ class DefaultAllocator:
         return value if value is None or isinstance(value, int | float | str) else None
 
 
-__all__ = ['Allocator', 'DefaultAllocator', 'ExcelResult', 'ExcelResultScalar']
+# Backward compatibility aliases.
+Allocator = Evaluator
+DefaultAllocator = DefaultEvaluator
+
+
+__all__ = [
+    'Allocator',
+    'DefaultAllocator',
+    'DefaultEvaluator',
+    'Evaluator',
+    'ExcelResult',
+    'ExcelResultScalar',
+]

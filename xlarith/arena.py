@@ -9,7 +9,7 @@ class Rect:
     width: int
 
 
-class Arena:
+class Allocator:
     def __init__(
         self,
         start_row: int = 1,
@@ -49,3 +49,10 @@ class Arena:
         )
 
         return rect
+
+
+class Arena(Allocator):
+    """Backward-compatible alias for the placement allocator."""
+
+
+__all__ = ['Allocator', 'Arena', 'Rect']

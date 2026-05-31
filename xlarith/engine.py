@@ -18,7 +18,7 @@ from .term import (
 )
 
 if TYPE_CHECKING:
-    from .allocator import Allocator, ExcelResult
+    from .allocator import Evaluator, ExcelResult
 
 
 @dataclass(frozen=True, slots=True)
@@ -39,16 +39,34 @@ class Engine:
     ) -> None:
         self._next_ref_key = 1
         self._bound_values: dict[Ref, MatrixValue] = {}
-        self._allocator: Allocator | None = None
+        self._evaluator: Evaluator | None = None
 
         if app is not None:
-            self.configure_allocator(
+            self.configure_evaluator(
                 app,
                 start_row=start_row,
                 start_col=start_col,
                 max_width=max_width,
                 gap=gap,
             )
+
+    def configure_evaluator(
+        self,
+        app: xw.App,
+        start_row: int = 1,
+        start_col: int = 1,
+        max_width: int = 256,
+        gap: int = 1,
+    ) -> None:
+        from .allocator import DefaultEvaluator
+
+        self._evaluator = DefaultEvaluator(
+            app,
+            start_row=start_row,
+            start_col=start_col,
+            max_width=max_width,
+            gap=gap,
+        )
 
     def configure_allocator(
         self,
@@ -58,9 +76,7 @@ class Engine:
         max_width: int = 256,
         gap: int = 1,
     ) -> None:
-        from .allocator import DefaultAllocator
-
-        self._allocator = DefaultAllocator(
+        self.configure_evaluator(
             app,
             start_row=start_row,
             start_col=start_col,
@@ -68,8 +84,11 @@ class Engine:
             gap=gap,
         )
 
-    def attach_allocator(self, allocator: Allocator) -> None:
-        self._allocator = allocator
+    def attach_evaluator(self, evaluator: Evaluator) -> None:
+        self._evaluator = evaluator
+
+    def attach_allocator(self, allocator: Evaluator) -> None:
+        self.attach_evaluator(allocator)
 
     def create_ref(self, value: ExcelValue) -> Ref:
         matrix = normalize_excel_value(value)
@@ -92,13 +111,13 @@ class Engine:
         return CompiledTerm(root=root, refs=tuple(refs), output_shape=out_shape)
 
     def evaluate(self, term: TermLike) -> ExcelResult:
-        if self._allocator is None:
+        if self._evaluator is None:
             raise RuntimeError(
-                'Allocator is not configured. Initialize Engine with app=... '
-                'or call configure_allocator(...).'
+                'Evaluator is not configured. Initialize Engine with app=... '
+                'or call configure_evaluator(...).'
             )
         compiled = self.compile(term)
-        return self._allocator.execute(self, compiled)
+        return self._evaluator.execute(self, compiled)
 
     def bound_value(self, ref: Ref) -> MatrixValue:
         try:
