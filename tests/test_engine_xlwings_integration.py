@@ -2,9 +2,8 @@ import unittest
 
 import xlwings as xw
 
+import xlarith as xa
 from xlarith.allocator import ArenaAllocator
-from xlarith.engine import Engine
-from xlarith.term import round as xround
 
 
 class TestEngineXlwingsIntegration(unittest.TestCase):
@@ -48,7 +47,7 @@ class TestEngineXlwingsIntegration(unittest.TestCase):
     def setUp(self) -> None:
         self.app.books.active.sheets.active.cells.clear_contents()
         allocator = ArenaAllocator(start_row=1, start_col=1, max_width=50, gap=1)
-        self.engine = Engine(
+        self.engine = xa.Engine(
             self.app,
             allocator=allocator,
         )
@@ -70,8 +69,8 @@ class TestEngineXlwingsIntegration(unittest.TestCase):
         positive = self.engine.create_ref(2.5)
         negative = self.engine.create_ref(-2.5)
 
-        excel_pos = self.engine.evaluate(xround(positive, 0))
-        excel_neg = self.engine.evaluate(xround(negative, 0))
+        excel_pos = self.engine.evaluate(xa.round(positive, 0))
+        excel_neg = self.engine.evaluate(xa.round(negative, 0))
 
         self.assertEqual(excel_pos, 3.0)
         self.assertEqual(excel_neg, -3.0)
