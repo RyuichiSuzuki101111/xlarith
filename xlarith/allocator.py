@@ -26,13 +26,17 @@ class ArenaAllocator:
         gap: int = 1,
     ) -> None:
         if start_row <= 0 or start_col <= 0:
-            raise ValueError('start_row and start_col must be positive')
+            msg = 'start_row and start_col must be positive'
+            raise ValueError(msg)
         if max_width < start_col:
-            raise ValueError('max_width must be >= start_col')
+            msg = 'max_width must be >= start_col'
+            raise ValueError(msg)
         if max_width > EXCEL_MAX_COLUMNS:
-            raise ValueError(f'max_width must be <= {EXCEL_MAX_COLUMNS}')
+            msg = f'max_width must be <= {EXCEL_MAX_COLUMNS}'
+            raise ValueError(msg)
         if gap < 0:
-            raise ValueError('gap must be non-negative')
+            msg = 'gap must be non-negative'
+            raise ValueError(msg)
 
         self._row = start_row
         self._col = start_col
@@ -45,13 +49,13 @@ class ArenaAllocator:
 
     def alloc(self, height: int, width: int) -> Rect:
         if height <= 0 or width <= 0:
-            raise ValueError('height and width must be positive')
+            msg = 'height and width must be positive'
+            raise ValueError(msg)
 
         available_width = self._max_width - self._start_col + 1
         if width > available_width:
-            raise ValueError(
-                f'width={width} exceeds available row width={available_width}'
-            )
+            msg = f'width={width} exceeds available row width={available_width}'
+            raise ValueError(msg)
 
         if self._col != self._start_col and self._col + width - 1 > self._max_width:
             self._row += self._current_row_height + self._gap

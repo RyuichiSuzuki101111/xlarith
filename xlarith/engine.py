@@ -61,9 +61,10 @@ class Engine:
         materialized = self._collect_materialized(root)
         for ref in refs:
             if ref not in self._bound_values:
-                raise ValueError(
+                msg = (
                     f'Reference key={ref.key} was not created by this engine instance.'
                 )
+                raise ValueError(msg)
 
         out_shape = term_shape(root)
         return CompiledTerm(
@@ -75,10 +76,11 @@ class Engine:
 
     def evaluate(self, term: TermLike) -> ExcelResult:
         if self._evaluator is None:
-            raise RuntimeError(
+            msg = (
                 'Evaluator is not configured. Initialize Engine with app=... '
                 'or call configure_evaluator(...).'
             )
+            raise RuntimeError(msg)
         compiled = self.compile(term)
         return self._evaluator.execute(self, compiled)
 
@@ -86,9 +88,8 @@ class Engine:
         try:
             return self._bound_values[ref]
         except KeyError as exc:
-            raise ValueError(
-                f'Reference key={ref.key} was not created by this engine instance.'
-            ) from exc
+            msg = f'Reference key={ref.key} was not created by this engine instance.'
+            raise ValueError(msg) from exc
 
     def _collect_refs(self, term: TermBase) -> list[Ref]:
         ordered_refs: list[Ref] = []

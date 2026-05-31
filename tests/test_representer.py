@@ -33,6 +33,15 @@ class TestExcelRepresenter(unittest.TestCase):
         formula_body = representer.represent_root(partial + 3)
         self.assertEqual(formula_body, '(B1+3)')
 
+    def test_represent_root_materialized_as_value_expression(self) -> None:
+        a = Ref(key=1, shape=(1, 1))
+        b = Ref(key=2, shape=(1, 1))
+        partial_expr = a + b
+        partial = Materialized(partial_expr, term_shape(partial_expr))
+        representer = ExcelRepresenter({a: 'A1', b: 'A2', partial: 'B1'})
+        formula_body = representer.represent_root(partial)
+        self.assertEqual(formula_body, '(A1+A2)')
+
 
 if __name__ == '__main__':
     unittest.main()

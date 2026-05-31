@@ -37,34 +37,48 @@ class ExcelRepresenter:
         self._ref_addresses = ref_addresses
 
     def represent_root(self, term: TermBase) -> str:
-        return self.represent(term)
+        # Root terms are rendered as value expressions for the output cell.
+        return self._represent(term, as_subexpression=False)
 
     def represent(self, term: TermBase) -> str:
+        return self._represent(term, as_subexpression=True)
+
+    def _represent(self, term: TermBase, as_subexpression: bool) -> str:
         if isinstance(term, Constant):
             return term.expr
 
         if isinstance(term, ArrayConstant):
             return self._array_constant(term)
 
-        if isinstance(term, Ref | Materialized):
+        if isinstance(term, Materialized):
+            if as_subexpression:
+                if term not in self._ref_addresses:
+                    msg = f'Term {term} was not placed in allocator.'
+                    raise ValueError(msg)
+                return self._ref_addresses[term]
+            return self._represent(term.term, as_subexpression=True)
+
+        if isinstance(term, Ref):
             if term not in self._ref_addresses:
-                raise ValueError(f'Term {term} was not placed in allocator.')
+                msg = f'Term {term} was not placed in allocator.'
+                raise ValueError(msg)
             return self._ref_addresses[term]
 
         if isinstance(term, UnaryOp):
-            inner = self.represent(term.term)
+            inner = self._represent(term.term, as_subexpression=True)
             if term.tag.notation is Notation.PREFIX:
                 return f'({term.tag.symbol}{inner})'
             return f'{self._excel_function_name(term.tag)}({inner})'
 
         if isinstance(term, BinaryOp):
-            left = self.represent(term.left)
-            right = self.represent(term.right)
+            left = self._represent(term.left, as_subexpression=True)
+            right = self._represent(term.right, as_subexpression=True)
             if term.tag.notation is Notation.INFIX:
                 return f'({left}{term.tag.symbol}{right})'
             return f'{self._excel_function_name(term.tag)}({left},{right})'
 
-        raise TypeError(f'Unsupported term type: {type(term)}')
+        msg = f'Unsupported term type: {type(term)}'
+        raise TypeError(msg)
 
     def _array_constant(self, term: ArrayConstant) -> str:
         row_exprs: list[str] = []
@@ -84,7 +98,8 @@ class ExcelRepresenter:
             OperatorTag.PRODUCT: 'PRODUCT',
         }
         if tag not in names:
-            raise ValueError(f'No Excel function mapping for {tag.name}')
+            msg = f'No Excel function mapping for {tag.name}'
+            raise ValueError(msg)
         return names[tag]
 
 

@@ -37,7 +37,8 @@ class Evaluator:
 
     def execute(self, engine: Engine, compiled: CompiledTerm) -> ExcelResult:
         if self.app is None:
-            raise RuntimeError('Excel app is not configured for evaluation.')
+            msg = 'Excel app is not configured for evaluation.'
+            raise RuntimeError(msg)
 
         addresses: dict[Ref | Materialized, str] = {}
         for ref in compiled.refs:

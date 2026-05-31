@@ -35,27 +35,30 @@ def normalize_excel_value(value: ExcelValue) -> MatrixValue:
         return ((value,),)
 
     if not _is_sequence(value) or len(value) == 0:
-        raise ValueError('Empty vectors/matrices are not supported.')
+        msg = 'Empty vectors/matrices are not supported.'
+        raise ValueError(msg)
 
     first = value[0]
     if _is_sequence(first):
         rows: list[tuple[ExcelScalar, ...]] = []
         width = len(first)
         if width == 0:
-            raise ValueError('Empty rows in matrices are not supported.')
+            msg = 'Empty rows in matrices are not supported.'
+            raise ValueError(msg)
 
         for row in value:
             if not _is_sequence(row):
-                raise ValueError('Mixed vector/matrix inputs are not supported.')
+                msg = 'Mixed vector/matrix inputs are not supported.'
+                raise ValueError(msg)
             if len(row) != width:
-                raise ValueError('Matrix rows must have the same length.')
+                msg = 'Matrix rows must have the same length.'
+                raise ValueError(msg)
 
             casted_row: list[ExcelScalar] = []
             for item in row:
                 if not _is_scalar(item):
-                    raise ValueError(
-                        f'Unsupported element type in matrix: {type(item)}'
-                    )
+                    msg = f'Unsupported element type in matrix: {type(item)}'
+                    raise ValueError(msg)
                 casted_row.append(item)
             rows.append(tuple(casted_row))
 
@@ -64,7 +67,8 @@ def normalize_excel_value(value: ExcelValue) -> MatrixValue:
     vector: list[ExcelScalar] = []
     for item in value:
         if not _is_scalar(item):
-            raise ValueError(f'Unsupported element type in vector: {type(item)}')
+            msg = f'Unsupported element type in vector: {type(item)}'
+            raise ValueError(msg)
         vector.append(item)
 
     return (tuple(vector),)
@@ -79,9 +83,11 @@ def broadcast_shape(left: Shape, right: Shape) -> Shape:
     r_rows, r_cols = right
 
     if l_rows != r_rows and l_rows != 1 and r_rows != 1:
-        raise ValueError(f'Cannot broadcast row dimensions: {left} and {right}')
+        msg = f'Cannot broadcast row dimensions: {left} and {right}'
+        raise ValueError(msg)
     if l_cols != r_cols and l_cols != 1 and r_cols != 1:
-        raise ValueError(f'Cannot broadcast column dimensions: {left} and {right}')
+        msg = f'Cannot broadcast column dimensions: {left} and {right}'
+        raise ValueError(msg)
 
     return (max(l_rows, r_rows), max(l_cols, r_cols))
 
@@ -133,7 +139,8 @@ class OperatorTag(Enum):
             OperatorTag.NEG: '-',
         }
         if self not in symbols:
-            raise ValueError(f'Operator {self.name} does not have infix/prefix symbol.')
+            msg = f'Operator {self.name} does not have infix/prefix symbol.'
+            raise ValueError(msg)
         return symbols[self]
 
 
@@ -244,7 +251,8 @@ def term_shape(term: TermBase) -> Shape:
         return term_shape(term.term)
     if isinstance(term, BinaryOp):
         return broadcast_shape(term_shape(term.left), term_shape(term.right))
-    raise TypeError(f'Unsupported term type: {type(term)}')
+    msg = f'Unsupported term type: {type(term)}'
+    raise TypeError(msg)
 
 
 def abs(term: TermLike) -> UnaryOp:
