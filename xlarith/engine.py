@@ -29,13 +29,13 @@ ExcelResult: TypeAlias = (
 class Engine:
     def __init__(
         self,
-        sheet: xw.Sheet,
+        app: xw.App,
         start_row: int = 1,
         start_col: int = 1,
         max_width: int = 100,
         gap: int = 1,
     ) -> None:
-        self.sheet = sheet
+        self.app = app
         self._start_row = start_row
         self._start_col = start_col
         self._max_width = max_width
@@ -81,8 +81,12 @@ class Engine:
         representer = ExcelRepresenter(addresses)
         formula = '=' + representer.represent_root(root)
         print(f'Writing formula to Excel: {formula}')
-        self.sheet.cells(out_rect.row, out_rect.col).formula = formula
-        self.sheet.book.app.calculate()
+        if out_shape == (1, 1):
+            self.app.range((out_rect.row, out_rect.col)).formula = formula
+        else:
+            # Use array formulas for fixed-shape vector/matrix outputs.
+            out_range.formula_array = formula
+        self.app.calculate()
 
         raw = out_range.value
         print(f'Raw result from Excel: {raw}')
@@ -122,7 +126,7 @@ class Engine:
         target.value = [list(row) for row in matrix]
 
     def _rect_range(self, rect: Rect) -> xw.Range:
-        return self.sheet.range(
+        return self.app.range(
             (rect.row, rect.col),
             (rect.row + rect.height - 1, rect.col + rect.width - 1),
         )
