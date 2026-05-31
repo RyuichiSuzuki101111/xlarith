@@ -1,3 +1,4 @@
+import contextlib
 import unittest
 
 import xlwings as xw
@@ -24,16 +25,12 @@ class TestEngineXlwingsIntegration(unittest.TestCase):
             return
 
         # Close books first to avoid save prompts in some Excel configurations.
-        try:
+        with contextlib.suppress(Exception):
             for book in list(app.books):
                 book.close()
-        except Exception:
-            pass
 
-        try:
+        with contextlib.suppress(Exception):
             app.quit()
-        except Exception:
-            pass
 
         # As a safety net, kill the exact app process if it still exists.
         app_pid = getattr(cls, '_app_pid', None)
@@ -69,8 +66,8 @@ class TestEngineXlwingsIntegration(unittest.TestCase):
         positive = self.engine.create_ref(2.5)
         negative = self.engine.create_ref(-2.5)
 
-        excel_pos = self.engine.evaluate(xa.round(positive, 0))
-        excel_neg = self.engine.evaluate(xa.round(negative, 0))
+        excel_pos = self.engine.evaluate(xa.wf.round(positive, 0))
+        excel_neg = self.engine.evaluate(xa.wf.round(negative, 0))
 
         self.assertEqual(excel_pos, 3.0)
         self.assertEqual(excel_neg, -3.0)

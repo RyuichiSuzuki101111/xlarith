@@ -1,8 +1,7 @@
 import unittest
 
 from xlarith.representer import ExcelRepresenter
-from xlarith.term import Materialized, Ref, term_shape, to_term
-from xlarith.term import abs as xabs
+from xlarith.term import Materialized, Ref, WorksheetFunctions, term_shape, to_term
 
 
 class TestExcelRepresenter(unittest.TestCase):
@@ -21,7 +20,7 @@ class TestExcelRepresenter(unittest.TestCase):
     def test_represent_unary_function(self) -> None:
         a = Ref(key=1, shape=(1, 1))
         representer = ExcelRepresenter({a: 'C3'})
-        formula_body = representer.represent_root(xabs(a))
+        formula_body = representer.represent_root(WorksheetFunctions.abs(a))
         self.assertEqual(formula_body, 'ABS(C3)')
 
     def test_represent_materialized_term_as_address(self) -> None:

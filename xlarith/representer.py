@@ -16,12 +16,13 @@ from .term import (
 def _looks_numeric(text: str) -> bool:
     try:
         float(text)
-        return True
     except ValueError:
         return False
+    else:
+        return True
 
 
-def _format_scalar(value: int | float | str) -> str:
+def _format_scalar(value: float | str) -> str:
     if isinstance(value, int | float):
         return str(value)
 
@@ -43,7 +44,7 @@ class ExcelRepresenter:
     def represent(self, term: TermBase) -> str:
         return self._represent(term, as_subexpression=True)
 
-    def _represent(self, term: TermBase, as_subexpression: bool) -> str:
+    def _represent(self, term: TermBase, *, as_subexpression: bool) -> str:
         if isinstance(term, Constant):
             return term.expr
 

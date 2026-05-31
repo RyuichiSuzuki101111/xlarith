@@ -1,13 +1,12 @@
+"""xlarith public package API."""
+
 from .engine import Engine
-from .term import abs, log, log10, product, round, sqrt, sum
+from .term import WorksheetFunctions
+
+wf = WorksheetFunctions
 
 __all__ = [
     'Engine',
-    'abs',
-    'log',
-    'log10',
-    'product',
-    'round',
-    'sqrt',
-    'sum',
+    'WorksheetFunctions',
+    'wf',
 ]

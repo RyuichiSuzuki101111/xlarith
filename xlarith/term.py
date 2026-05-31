@@ -9,7 +9,7 @@ ExcelScalar: TypeAlias = int | float | str
 ExcelArray1D: TypeAlias = Sequence[ExcelScalar]
 ExcelArray2D: TypeAlias = Sequence[Sequence[ExcelScalar]]
 ExcelValue: TypeAlias = ExcelScalar | ExcelArray1D | ExcelArray2D
-TermLike: TypeAlias = ExcelValue | 'TermBase'
+TermLike: TypeAlias = 'ExcelValue | TermBase'
 Shape: TypeAlias = tuple[int, int]
 MatrixValue: TypeAlias = tuple[tuple[ExcelScalar, ...], ...]
 
@@ -26,7 +26,8 @@ def _is_scalar(value: object) -> TypeGuard[ExcelScalar]:
 
 def _is_sequence(value: object) -> TypeGuard[Sequence[object]]:
     return isinstance(value, Sequence) and not isinstance(
-        value, str | bytes | bytearray
+        value,
+        str | bytes | bytearray,
     )
 
 
@@ -82,10 +83,10 @@ def broadcast_shape(left: Shape, right: Shape) -> Shape:
     l_rows, l_cols = left
     r_rows, r_cols = right
 
-    if l_rows != r_rows and l_rows != 1 and r_rows != 1:
+    if l_rows not in (r_rows, 1) and r_rows not in (l_rows, 1):
         msg = f'Cannot broadcast row dimensions: {left} and {right}'
         raise ValueError(msg)
-    if l_cols != r_cols and l_cols != 1 and r_cols != 1:
+    if l_cols not in (r_cols, 1) and r_cols not in (l_cols, 1):
         msg = f'Cannot broadcast column dimensions: {left} and {right}'
         raise ValueError(msg)
 
@@ -222,9 +223,7 @@ def is_term_like(value: object) -> TypeGuard[TermLike]:
         return True
     if _is_scalar(value):
         return True
-    if _is_sequence(value):
-        return True
-    return False
+    return _is_sequence(value)
 
 
 def to_term(value: TermLike) -> TermBase:
@@ -255,32 +254,40 @@ def term_shape(term: TermBase) -> Shape:
     raise TypeError(msg)
 
 
-def abs(term: TermLike) -> UnaryOp:
-    return UnaryOp(OperatorTag.ABS, to_term(term))
+class WorksheetFunctions:
+    """Convenience wrapper for creating function terms."""
+
+    @staticmethod
+    def abs(term: TermLike) -> UnaryOp:
+        return UnaryOp(OperatorTag.ABS, to_term(term))
+
+    @staticmethod
+    def round(term: TermLike, ndigits: TermLike) -> BinaryOp:
+        return BinaryOp(OperatorTag.ROUND, to_term(term), to_term(ndigits))
+
+    @staticmethod
+    def sqrt(term: TermLike) -> UnaryOp:
+        return UnaryOp(OperatorTag.SQRT, to_term(term))
+
+    @staticmethod
+    def log10(term: TermLike) -> UnaryOp:
+        return UnaryOp(OperatorTag.LOG10, to_term(term))
+
+    @staticmethod
+    def log(term: TermLike) -> UnaryOp:
+        return UnaryOp(OperatorTag.LOG, to_term(term))
+
+    @staticmethod
+    def sum(term: TermLike) -> UnaryOp:
+        return UnaryOp(OperatorTag.SUM, to_term(term))
+
+    @staticmethod
+    def product(term: TermLike) -> UnaryOp:
+        return UnaryOp(OperatorTag.PRODUCT, to_term(term))
 
 
-def round(term: TermLike, ndigits: TermLike) -> BinaryOp:
-    return BinaryOp(OperatorTag.ROUND, to_term(term), to_term(ndigits))
-
-
-def sqrt(term: TermLike) -> UnaryOp:
-    return UnaryOp(OperatorTag.SQRT, to_term(term))
-
-
-def log10(term: TermLike) -> UnaryOp:
-    return UnaryOp(OperatorTag.LOG10, to_term(term))
-
-
-def log(term: TermLike) -> UnaryOp:
-    return UnaryOp(OperatorTag.LOG, to_term(term))
-
-
-def sum(term: TermLike) -> UnaryOp:
-    return UnaryOp(OperatorTag.SUM, to_term(term))
-
-
-def product(term: TermLike) -> UnaryOp:
-    return UnaryOp(OperatorTag.PRODUCT, to_term(term))
+# Public namespace for worksheet function term builders.
+wf = WorksheetFunctions
 
 
 __all__ = [
@@ -291,8 +298,8 @@ __all__ = [
     'ExcelArray2D',
     'ExcelScalar',
     'ExcelValue',
-    'MatrixValue',
     'Materialized',
+    'MatrixValue',
     'Notation',
     'OperatorTag',
     'Ref',
@@ -300,17 +307,12 @@ __all__ = [
     'TermBase',
     'TermLike',
     'UnaryOp',
-    'abs',
+    'WorksheetFunctions',
     'broadcast_shape',
     'is_term_like',
-    'log',
-    'log10',
     'normalize_excel_value',
-    'product',
-    'round',
     'shape_of_matrix',
-    'sqrt',
-    'sum',
     'term_shape',
     'to_term',
+    'wf',
 ]

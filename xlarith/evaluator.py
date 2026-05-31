@@ -3,15 +3,15 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, TypeAlias
 
-import xlwings as xw
-
-from .placement import Allocator, Rect
 from .representer import ExcelRepresenter
 from .term import ExcelScalar, Materialized, MatrixValue, Ref, Shape
 
 if TYPE_CHECKING:
+    import xlwings as xw
+
     from .compiler import CompiledTerm
     from .engine import Engine
+    from .placement import Allocator, Rect
 
 
 ExcelResultScalar: TypeAlias = ExcelScalar | None
@@ -150,14 +150,16 @@ class Evaluator:
 
         first = outer[0]
         is_nested = isinstance(first, Sequence) and not isinstance(
-            first, str | bytes | bytearray
+            first,
+            str | bytes | bytearray,
         )
 
         if is_nested:
             for r in range(min(rows, len(outer))):
                 row_obj = outer[r]
                 if not isinstance(row_obj, Sequence) or isinstance(
-                    row_obj, str | bytes | bytearray
+                    row_obj,
+                    str | bytes | bytearray,
                 ):
                     if cols > 0:
                         matrix[r][0] = self._to_excel_result_scalar(row_obj)

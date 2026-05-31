@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import Protocol
 
@@ -83,4 +85,4 @@ class ArenaAllocator:
         pass
 
 
-__all__ = ['Allocator', 'ArenaAllocator', 'EXCEL_MAX_COLUMNS', 'Rect']
+__all__ = ['EXCEL_MAX_COLUMNS', 'Allocator', 'ArenaAllocator', 'Rect']
