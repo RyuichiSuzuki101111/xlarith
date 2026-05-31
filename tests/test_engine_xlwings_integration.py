@@ -1,4 +1,5 @@
 import contextlib
+import math
 import unittest
 
 import xlwings as xw
@@ -92,6 +93,34 @@ class TestEngineXlwingsIntegration(unittest.TestCase):
         result = self.engine.evaluate(partial * 2)
 
         self.assertEqual(result, 14)
+
+    def test_log_uses_excel_natural_log(self) -> None:
+        value = self.engine.create_ref(math.e)
+
+        result = self.engine.evaluate(xa.wf.log(value))
+
+        self.assertAlmostEqual(result, 1.0, places=12)
+
+    def test_log10_uses_excel_base10_log(self) -> None:
+        value = self.engine.create_ref(1000)
+
+        result = self.engine.evaluate(xa.wf.log10(value))
+
+        self.assertAlmostEqual(result, 3.0, places=12)
+
+    def test_sum_reduces_vector_to_scalar(self) -> None:
+        vector = self.engine.create_ref([1, 2, 3, 4])
+
+        result = self.engine.evaluate(xa.wf.sum(vector))
+
+        self.assertEqual(result, 10)
+
+    def test_product_reduces_vector_to_scalar(self) -> None:
+        vector = self.engine.create_ref([2, 3, 4])
+
+        result = self.engine.evaluate(xa.wf.product(vector))
+
+        self.assertEqual(result, 24)
 
 
 if __name__ == '__main__':
