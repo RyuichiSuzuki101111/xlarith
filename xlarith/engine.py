@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING
 
 import xlwings as xw
 
+from .allocator import ArenaAllocator
+from .evaluator import Evaluator, ExcelResult
 from .term import (
     ExcelValue,
     MatrixValue,
@@ -18,7 +20,7 @@ from .term import (
 )
 
 if TYPE_CHECKING:
-    from .evaluator import Allocator, Evaluator, ExcelResult
+    from .allocator import Allocator
 
 
 @dataclass(frozen=True, slots=True)
@@ -32,74 +34,12 @@ class Engine:
     def __init__(
         self,
         app: xw.App | None = None,
-        start_row: int = 1,
-        start_col: int = 1,
-        max_width: int = 256,
-        gap: int = 1,
+        allocator: Allocator | None = None,
     ) -> None:
         self._next_ref_key = 1
         self._bound_values: dict[Ref, MatrixValue] = {}
-        self._evaluator: Evaluator | None = None
-
-        if app is not None:
-            self.configure_evaluator(
-                app,
-                start_row=start_row,
-                start_col=start_col,
-                max_width=max_width,
-                gap=gap,
-            )
-
-    def configure_evaluator(
-        self,
-        app: xw.App,
-        start_row: int = 1,
-        start_col: int = 1,
-        max_width: int = 256,
-        gap: int = 1,
-    ) -> None:
-        from .evaluator import ArenaAllocator, Evaluator
-
-        allocator = ArenaAllocator(
-            start_row=start_row,
-            start_col=start_col,
-            max_width=max_width,
-            gap=gap,
-        )
-
-        self._evaluator = Evaluator(
-            app,
-            allocator=allocator,
-        )
-
-    def configure_allocator(
-        self,
-        app: xw.App,
-        start_row: int = 1,
-        start_col: int = 1,
-        max_width: int = 256,
-        gap: int = 1,
-    ) -> None:
-        self.configure_evaluator(
-            app,
-            start_row=start_row,
-            start_col=start_col,
-            max_width=max_width,
-            gap=gap,
-        )
-
-    def attach_evaluator(self, evaluator: Evaluator) -> None:
-        self._evaluator = evaluator
-
-    def attach_allocator(self, allocator: Allocator) -> None:
-        if self._evaluator is None:
-            raise RuntimeError(
-                'Evaluator is not configured. Configure an evaluator before '
-                'replacing its allocator.'
-            )
-        if not hasattr(self._evaluator, 'set_allocator'):
-            raise TypeError('Current evaluator does not support allocator replacement.')
-        self._evaluator.set_allocator(allocator)
+        self._allocator = allocator or ArenaAllocator()
+        self._evaluator = Evaluator(app, self._allocator)
 
     def create_ref(self, value: ExcelValue) -> Ref:
         matrix = normalize_excel_value(value)
