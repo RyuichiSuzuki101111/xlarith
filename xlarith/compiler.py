@@ -1,0 +1,96 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+from .term import Materialized, Ref, Shape, TermBase, TermLike, term_shape, to_term
+
+if TYPE_CHECKING:
+    from .engine import Engine
+
+
+@dataclass(frozen=True, slots=True)
+class CompiledTerm:
+    root: TermBase
+    refs: tuple[Ref, ...]
+    materialized: tuple[Materialized, ...]
+    output_shape: Shape
+
+
+class Compiler:
+    def compile(self, engine: Engine, term: TermLike) -> CompiledTerm:
+        root = to_term(term)
+        refs = self.collect_refs(root)
+        materialized = self.collect_materialized(root)
+        for ref in refs:
+            if ref not in engine._bound_values:
+                msg = (
+                    f'Reference key={ref.key} was not created by this engine instance.'
+                )
+                raise ValueError(msg)
+
+        out_shape = term_shape(root)
+        return CompiledTerm(
+            root=root,
+            refs=tuple(refs),
+            materialized=tuple(materialized),
+            output_shape=out_shape,
+        )
+
+    def collect_refs(self, term: TermBase) -> list[Ref]:
+        ordered_refs: list[Ref] = []
+        seen: set[Ref] = set()
+
+        def visit(node: TermBase) -> None:
+            from .term import BinaryOp, UnaryOp
+
+            if isinstance(node, Ref):
+                if node not in seen:
+                    seen.add(node)
+                    ordered_refs.append(node)
+                return
+
+            if isinstance(node, Materialized):
+                visit(node.term)
+                return
+
+            if isinstance(node, UnaryOp):
+                visit(node.term)
+                return
+
+            if isinstance(node, BinaryOp):
+                visit(node.left)
+                visit(node.right)
+                return
+
+        visit(term)
+        return ordered_refs
+
+    def collect_materialized(self, term: TermBase) -> list[Materialized]:
+        ordered_terms: list[Materialized] = []
+        seen: set[Materialized] = set()
+
+        def visit(node: TermBase) -> None:
+            from .term import BinaryOp, UnaryOp
+
+            if isinstance(node, Materialized):
+                visit(node.term)
+                if node not in seen:
+                    seen.add(node)
+                    ordered_terms.append(node)
+                return
+
+            if isinstance(node, UnaryOp):
+                visit(node.term)
+                return
+
+            if isinstance(node, BinaryOp):
+                visit(node.left)
+                visit(node.right)
+                return
+
+        visit(term)
+        return ordered_terms
+
+
+__all__ = ['CompiledTerm', 'Compiler']

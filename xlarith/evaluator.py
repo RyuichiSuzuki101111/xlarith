@@ -5,12 +5,13 @@ from typing import TYPE_CHECKING, TypeAlias
 
 import xlwings as xw
 
-from .allocator import Allocator, Rect
+from .placement import Allocator, Rect
 from .representer import ExcelRepresenter
 from .term import ExcelScalar, Materialized, MatrixValue, Ref, Shape
 
 if TYPE_CHECKING:
-    from .engine import CompiledTerm, Engine
+    from .compiler import CompiledTerm
+    from .engine import Engine
 
 
 ExcelResultScalar: TypeAlias = ExcelScalar | None
