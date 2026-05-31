@@ -17,7 +17,8 @@ class TestEngineXlwingsIntegration(unittest.TestCase):
             cls.app.display_alerts = False
             cls.addClassCleanup(cls._cleanup_excel_app)
         except Exception as exc:  # pragma: no cover - depends on local Excel setup
-            raise unittest.SkipTest(f'Excel app is not available: {exc}') from exc
+            msg = f'Excel app is not available: {exc}'
+            raise unittest.SkipTest(msg) from exc
 
     @classmethod
     def _cleanup_excel_app(cls) -> None:
