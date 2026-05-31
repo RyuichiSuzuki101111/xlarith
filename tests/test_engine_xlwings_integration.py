@@ -4,6 +4,7 @@ import xlwings as xw
 
 from xlarith.allocator import ArenaAllocator
 from xlarith.engine import Engine
+from xlarith.term import round as xround
 
 
 class TestEngineXlwingsIntegration(unittest.TestCase):
@@ -64,6 +65,20 @@ class TestEngineXlwingsIntegration(unittest.TestCase):
         result = self.engine.evaluate(left + right)
 
         self.assertEqual(result, [[11, 22], [33, 44]])
+
+    def test_round_tie_behavior_differs_from_python(self) -> None:
+        positive = self.engine.create_ref(2.5)
+        negative = self.engine.create_ref(-2.5)
+
+        excel_pos = self.engine.evaluate(xround(positive, 0))
+        excel_neg = self.engine.evaluate(xround(negative, 0))
+
+        self.assertEqual(excel_pos, 3.0)
+        self.assertEqual(excel_neg, -3.0)
+
+        # Python uses bankers rounding for ties.
+        self.assertEqual(round(2.5), 2)
+        self.assertEqual(round(-2.5), -2)
 
 
 if __name__ == '__main__':
